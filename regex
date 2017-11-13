@@ -1,0 +1,8 @@
+#! /bin/bash
+F="2100-04-04"
+if [[ $F =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]];then
+	echo "feoooooo"
+else
+	echo "sadlfka"
+fi
+

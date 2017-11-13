@@ -18,7 +18,7 @@ fi
 ERROR="minientrega.sh: Error, no se pudo realizar la entrega"
 
 #Si no existe la variable donde se guarda el directorio entonces:
-if test -z ${MINIENTREGA_CONF} ;then
+if test -e ${MINIENTREGA_CONF} || test -z ${MINIENTREGA_CONF} ;then
   echo $ERROR >&2
   echo "minientrega.sh+ No es accesible el directorio \"${MINIENTREGA_CONF}\"" >&2
   exit 64
@@ -43,10 +43,25 @@ fi
 source $1
 
 #Comprobamos fecha
-date -d $MINIENTREGA_FECHALIMITE>&/dev/null
-FECHAACTUAL=`date +"%Y%m%d"`
+FECHAACTUAL=`date +"%Y%m%d"`	
+FECHALIMITE=$MINIENTREGA_FECHALIMITE
+date -d $MINIENTREGA_FECHALIMITE &> /dev/null
+if [ $? -ne "0" ];then
+	echo $ERROR >&2
+	echo "minientrega.sh+ fecha incorrecasdfasdfta \"$MINIENTREGA_FECHALIMITE\"" >&2
+	exit 65
+fi
 
-if [ $? -ne "0" ] || [ $MINIENTREGA_FECHALIMITE -ge "21000101" ] || [ $MINIENTREGA_FECHALIMITE -ge $FECHAACTUAL ] ;then
+if [[ ${MINIENTREGA_FECHALIMITE} =~ ^[0-9]{4}-[0-9]{2}-[0,9]{2}$ ]];then
+	echo $ERROR >&2
+	echo "minientrega.sh+ fecha incorrecta \"$MINIENTREGA_FECHALIMITE\"" >&2
+	exit 65
+fi
+
+
+FECHA=`date --date=$MINIENTREGA_FECHALIMITE +"%Y%m%d"`
+
+if [ ${FECHA} -ge "21000101" ] || [ ${FECHA} -gt ${FECHAACTUAL} ];then	
 	echo $ERROR >&2
 	echo "minientrega.sh+ fecha incorrecta \"$MINIENTREGA_FECHALIMITE\"" >&2
 	exit 65
