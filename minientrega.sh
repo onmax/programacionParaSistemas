@@ -14,11 +14,11 @@ if [ $1 == "-h" ] || [ $1 == "--help" ]; then
   exit 0
 fi
 
-
+RUTA=${MINIENTREGA_CONF}	
 ERROR="minientrega.sh: Error, no se pudo realizar la entrega"
 
 #Si no existe la variable donde se guarda el directorio entonces:
-if test -e ${MINIENTREGA_CONF} || test -z ${MINIENTREGA_CONF} ;then
+if test -z ${MINIENTREGA_CONF} || test -o ${MINIENTREGA_CONF};then
   echo $ERROR >&2
   echo "minientrega.sh+ No es accesible el directorio \"${MINIENTREGA_CONF}\"" >&2
   exit 64
@@ -30,9 +30,9 @@ if test ! -d ${MINIENTREGA_CONF} ;then
   echo "minientrega.sh+ No es accesible el directorio \"${MINIENTREGA_CONF}\"" >&2
   exit 64
 else
-  cd ${MINIENTREGA_CONF}	
+  
 	#Si no existe el archivo en dicho directorio:
-  if test ! -e $1; then
+  if test ! -f $RUTA/$1; then
     echo $ERROR >&2 
     echo "minientrega.sh+ No es accesible el fichero \"$1\"" >&2
     exit 66
@@ -40,7 +40,7 @@ else
 fi
 
 #Cargamos variables
-source $1
+source $RUTA/$1
 
 #Comprobamos fecha
 FECHAACTUAL=`date +"%Y%m%d"`	
@@ -61,7 +61,7 @@ fi
 
 FECHA=`date --date=$MINIENTREGA_FECHALIMITE +"%Y%m%d"`
 
-if [ ${FECHA} -ge "21000101" ] || [ ${FECHA} -gt ${FECHAACTUAL} ];then	
+if [ ${FECHA} -ge "21000101" ] || [ ${FECHA} -le ${FECHAACTUAL} ];then	
 	echo $ERROR >&2
 	echo "minientrega.sh+ fecha incorrecta \"$MINIENTREGA_FECHALIMITE\"" >&2
 	exit 65
@@ -69,7 +69,7 @@ fi
 
 #Comprobamos archivos
 for file in ${MINIENTREGA_FICHEROS[@]}; do
-	if test ! -e $file || test ! -r $file; then
+	if test ! -r $file; then
 		echo $ERROR >&2
 		echo "minientrega.sh+ No es accesible el fichero \"$file\"" >&2
 		exit 66
@@ -79,15 +79,19 @@ done
 #Comprobamos destino
 if test ! -d ${MINIENTREGA_DESTINO} ;then
   echo $ERROR >&2
-  echo "minientrega.sh+ No es accesible el directorio \"${MINIENTREGA_DESTINO}\"" >&2
+  echo "minientrega.sh+ No se puede crear el subdirectorio de entrega en \"${MINIENTREGA_DESTINO}\"" >&2
   exit 73
+else
+	if test ! -w $MINIENTREGA_DESTINO;then
+	  echo $ERROR >&2
+	  echo "minientrega.sh+ No se tienen los permisos para crear el archivo en \"${MINIENTREGA_DESTINO}\"" >&2
+	  exit 73
+	else
+		mkdir ${MINIENTREGA_DESTINO}/${USER}
+		cp ${MINIENTREGA_FICHEROS} ${MINIENTREGA_DESTION}/${USER}
+	fi
 fi
-cd ${MINIENTREGA_DESTINO}
-mkdir ${USER}
-if [ $? -ne "0" ];then
-	echo $ERROR >&2
-	echo "minientrega.sh+ no se pudo crear el subdirectorio de entrega en \"$MINIENTREGA_DESTINO\""  >&2
-	exit 73
-fi
+
+
 exit 0
 
